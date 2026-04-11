@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
 
+/// A clean, elevated white card used consistently across the app.
+/// 
+/// Replaces the primary neumorphic pattern with a modern, crisp elevated 
+/// design using a soft drop shadow, placed over the cream white background.
 class NeuCard extends StatelessWidget {
   final Widget child;
   final double padding;
@@ -22,35 +25,15 @@ class NeuCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
-        color: color ?? AppColors.background,
+        color: color ?? Colors.white, // Plain white background for pure, soft look
         borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: isPressed
-            ? [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  offset: const Offset(inset, inset),
-                  blurRadius: 5,
-                  spreadRadius: 1,
-                ),
-                BoxShadow(
-                  color: Colors.white,
-                  offset: const Offset(-inset, -inset),
-                  blurRadius: 5,
-                  spreadRadius: 1,
-                ),
-              ]
-            : [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  offset: const Offset(6, 6),
-                  blurRadius: 12,
-                ),
-                BoxShadow(
-                  color: Colors.white,
-                  offset: const Offset(-6, -6),
-                  blurRadius: 12,
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04), // Clean, subtle uplifting shadow
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: child,
     );

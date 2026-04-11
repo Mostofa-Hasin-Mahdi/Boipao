@@ -4,6 +4,11 @@ import '../../core/theme/app_colors.dart';
 import '../../widgets/glass_nav_bar.dart';
 import '../home/home_view.dart';
 
+/// The central scaffolding view for the application.
+/// 
+/// Coordinates tab switching via [MainController], holds the dynamic 
+/// floating navigation dock at the bottom, and safely positions the 
+/// primary Floating Action Button ('Add') above the dock.
 class MainView extends StatefulWidget {
   const MainView({super.key});
 
@@ -17,7 +22,6 @@ class _MainViewState extends State<MainView> {
   final List<Widget> _pages = [
     const HomeView(),
     const Center(child: Text("Search Page", style: TextStyle(color: AppColors.textMain, fontSize: 20))),
-    const Center(child: Text("Add Listing", style: TextStyle(color: AppColors.textMain, fontSize: 20))),
     const Center(child: Text("Profile Page", style: TextStyle(color: AppColors.textMain, fontSize: 20))),
   ];
 
@@ -50,6 +54,21 @@ class _MainViewState extends State<MainView> {
               onItemSelected: _controller.changeTab,
             ),
           ),
+          Positioned(
+            bottom: 110, // Places it cleanly above the floating navigation bar
+            right: 24,
+            child: FloatingActionButton(
+              onPressed: () {
+                // Add material action
+              },
+              backgroundColor: AppColors.navBar,
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(Icons.add_rounded, color: Colors.white, size: 30),
+            ),
+          )
         ],
       ),
     );

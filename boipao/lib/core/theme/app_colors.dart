@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// AppColors acts as our central theme dictionary.
-/// All colors correspond to the soft UI, Neumorphic/Glassmorphic design.
+/// AppColors acts as central theme dictionary.
+/// All colors correspond to the soft UI, Neumorphic design.
 class AppColors {
-  static const Color background = Color(0xFFF9F7F6);   // Main Scaffolding color
+  static const Color background = Color(0xFFFCF9F2);   // Cream white main background
   static const Color primaryCard = Color(0xFFCEE9BD);  // Accents and feature cards
   static const Color secondary = Color(0xFFE0D5CF);    // Unselected icons / accents
   static const Color darkCard = Color(0xFFBCC5AD);     // Inner shadows / darker elements

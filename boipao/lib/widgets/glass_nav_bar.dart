@@ -19,8 +19,8 @@ class GlassNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 24), // Removes the horizontal margin stretch
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // slightly wider inner padding 
       height: 70,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(35), // The entire navigation bar is a pill
@@ -34,12 +34,13 @@ class GlassNavBar extends StatelessWidget {
         ]
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.min, // Shrink-wraps the row horizontally!
         children: [
           _buildNavItem(Icons.home_rounded, "Home", 0),
+          const SizedBox(width: 8), // Add explicit tiny spacing
           _buildNavItem(Icons.search_rounded, "Search", 1),
-          _buildNavItem(Icons.add_circle_outline_rounded, "Add", 2),
-          _buildNavItem(Icons.person_rounded, "Profile", 3),
+          const SizedBox(width: 8),
+          _buildNavItem(Icons.person_rounded, "Profile", 2),
         ],
       ),
     );
