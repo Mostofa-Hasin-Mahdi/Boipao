@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'controllers/auth_controller.dart';
 import 'core/theme/app_colors.dart';
+import 'views/auth/login_view.dart';
 import 'views/main/main_view.dart';
 
 /// The entry point for the BoiPao application.
 void main() {
-  runApp(const BoiPaoApp());
+  // Encapsulate the global application within our central state provider
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AuthController(),
+      child: const BoiPaoApp(),
+    ),
+  );
 }
 
 /// The root application widget setting up global themes.
@@ -24,8 +33,14 @@ class BoiPaoApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryCard),
         useMaterial3: true,
       ),
-      home: const MainView(),
+      // Automatically route between screens based on dummy login state dynamically
+      home: Consumer<AuthController>(
+        builder: (context, authController, _) {
+          return authController.isLoggedIn ? const MainView() : const LoginView();
+        },
+      ),
     );
   }
 }
+
 

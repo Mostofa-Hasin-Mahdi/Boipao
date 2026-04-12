@@ -10,4 +10,5 @@ class AppColors {
   static const Color textMain = Color(0xFF000000);     // Changed from grey to pure black for high contrast readability
   static const Color navBar = Color(0xFF050504);       // Solid black navigation bar
   static const Color iconAccent = Color(0xFF8BA07E);   // A deeply saturated, darker variant of primaryCard used specifically for colored icons
+  static const Color warning = Color(0xFFE8D0B3);      // A soft, warm beige/orange for attention banners (e.g. unverified status)
 }
