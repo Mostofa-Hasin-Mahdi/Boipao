@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'controllers/auth_controller.dart';
 import 'core/theme/app_colors.dart';
-import 'views/auth/login_view.dart';
+import 'views/auth/auth_main_view.dart';
 import 'views/main/main_view.dart';
 
 /// The entry point for the BoiPao application.
@@ -36,11 +36,12 @@ class BoiPaoApp extends StatelessWidget {
       // Automatically route between screens based on dummy login state dynamically
       home: Consumer<AuthController>(
         builder: (context, authController, _) {
-          return authController.isLoggedIn ? const MainView() : const LoginView();
+          return authController.isLoggedIn ? const MainView() : const AuthMainView();
         },
       ),
     );
   }
 }
+
 
 

@@ -36,12 +36,10 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 60.0),
-          child: Column(
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 60.0).copyWith(bottom: 120),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Logo & Title Section
@@ -144,17 +142,9 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ),
               ),
-
-              const SizedBox(height: 24),
-              const Text(
-                "Don't have an account? Sign Up",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.iconAccent, fontWeight: FontWeight.bold),
-              )
             ],
           ),
         ),
-      ),
     );
   }
 }
