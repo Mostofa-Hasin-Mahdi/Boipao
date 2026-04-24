@@ -3,6 +3,7 @@ import '../../controllers/main_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/glass_nav_bar.dart';
 import '../home/home_view.dart';
+import '../profile/profile_view.dart';
 
 /// The central scaffolding view for the application.
 /// 
@@ -22,7 +23,7 @@ class _MainViewState extends State<MainView> {
   final List<Widget> _pages = [
     const HomeView(),
     const Center(child: Text("Search Page", style: TextStyle(color: AppColors.textMain, fontSize: 20))),
-    const Center(child: Text("Profile Page", style: TextStyle(color: AppColors.textMain, fontSize: 20))),
+    const ProfileView(),
   ];
 
   @override

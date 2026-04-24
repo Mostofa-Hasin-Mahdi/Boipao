@@ -33,6 +33,17 @@ class AuthController extends ChangeNotifier {
     return true; // Success
   }
 
+  /// Updates the current dummy user's profile details temporarily.
+  void updateProfile({String? displayName, String? location}) {
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(
+        displayName: displayName,
+        location: location,
+      );
+      notifyListeners();
+    }
+  }
+
   /// Clears the mocked session.
   void logout() {
     _currentUser = null;
