@@ -5,10 +5,8 @@ enum UserRole {
   admin,
 }
 
-/// A dummy user class replicating what a Supabase Auth User or custom user profile will look like.
-/// 
-
-class DummyUser {
+/// A class representing a mapped Supabase profile.
+class UserModel {
   final String id;
   final String email;
   final String displayName;
@@ -20,7 +18,7 @@ class DummyUser {
   final int donationsCount;
   final int claimsCount;
   
-  const DummyUser({
+  const UserModel({
     required this.id,
     required this.email,
     required this.displayName,
@@ -33,11 +31,11 @@ class DummyUser {
   });
 
   /// Allows updating specific fields while keeping others unchanged.
-  DummyUser copyWith({
+  UserModel copyWith({
     String? displayName,
     String? location,
   }) {
-    return DummyUser(
+    return UserModel(
       id: id,
       email: email,
       displayName: displayName ?? this.displayName,
@@ -50,33 +48,24 @@ class DummyUser {
     );
   }
 
-  /// A helper method to quickly construct dummy user mock profiles for our UI verification
-  factory DummyUser.mock(String email, UserRole role, {bool isVerified = false}) {
-    switch (role) {
-      case UserRole.user:
-        return DummyUser(
-          id: '1', 
-          email: email, 
-          displayName: isVerified ? 'Verified Student' : 'Unverified User', 
-          role: UserRole.user,
-          isVerified: isVerified,
-          location: 'Uttara, Dhaka',
-          points: isVerified ? 120 : 0,
-          donationsCount: isVerified ? 12 : 0,
-          claimsCount: isVerified ? 3 : 0,
-        );
-      case UserRole.admin:
-        return DummyUser(
-          id: '2', 
-          email: email, 
-          displayName: 'System Admin', 
-          role: UserRole.admin,
-          isVerified: true, // Admins are always verified by default
-          location: 'HQ',
-          points: 999,
-          donationsCount: 50,
-          claimsCount: 0,
-        );
+  /// Parses JSON from the Supabase `profiles` table.
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    // Determine role from postgres enum string
+    UserRole parsedRole = UserRole.user;
+    if (json['role'] == 'admin') {
+      parsedRole = UserRole.admin;
     }
+
+    return UserModel(
+      id: json['id'] as String,
+      email: json['email'] as String,
+      displayName: json['display_name'] as String? ?? 'Unknown User',
+      role: parsedRole,
+      isVerified: json['is_verified'] as bool? ?? false,
+      location: json['location'] as String? ?? 'Dhaka, Bangladesh',
+      points: json['points'] as int? ?? 0,
+      donationsCount: json['donations_count'] as int? ?? 0,
+      claimsCount: json['claims_count'] as int? ?? 0,
+    );
   }
 }

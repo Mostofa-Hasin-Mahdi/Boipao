@@ -17,12 +17,12 @@ class _LoginViewState extends State<LoginView> {
   final TextEditingController _passwordController = TextEditingController();
   String _errorMessage = '';
 
-  void _handleLogin() {
+  void _handleLogin() async {
     final authController = context.read<AuthController>();
-    final success = authController.login(_emailController.text, _passwordController.text);
-    if (!success) {
+    final success = await authController.login(_emailController.text, _passwordController.text);
+    if (!success && mounted) {
       setState(() {
-        _errorMessage = 'Invalid credentials. Try user@boipao.com or verified@boipao.com';
+        _errorMessage = authController.errorMessage;
       });
     }
   }

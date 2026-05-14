@@ -17,11 +17,21 @@ class _SignupViewState extends State<SignupView> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  void _handleSignup() {
+  String _errorMessage = '';
+
+  void _handleSignup() async {
     final authController = context.read<AuthController>();
-    // For Phase 2, sign up just natively logs them in using the mock logic.
-    // E.g. typing user@boipao.com logs them in as user
-    authController.login(_emailController.text, _passwordController.text);
+    final success = await authController.signup(
+      _emailController.text,
+      _passwordController.text,
+      _nameController.text,
+    );
+    
+    if (!success && mounted) {
+      setState(() {
+        _errorMessage = authController.errorMessage;
+      });
+    }
   }
 
   @override
@@ -119,6 +129,13 @@ class _SignupViewState extends State<SignupView> {
                       prefixIcon: const Icon(Icons.lock_outline),
                     ),
                   ),
+                  if (_errorMessage.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _errorMessage,
+                      style: const TextStyle(color: Colors.red, fontSize: 13),
+                    ),
+                  ]
                 ],
               ),
             ),

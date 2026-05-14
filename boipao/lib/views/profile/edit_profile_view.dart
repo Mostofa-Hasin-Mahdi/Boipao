@@ -118,17 +118,19 @@ class _EditProfileViewState extends State<EditProfileView> {
 
             // Save Action
             GestureDetector(
-              onTap: () {
+              onTap: () async {
                 // We update the local mock state instantly
-                context.read<AuthController>().updateProfile(
+                await context.read<AuthController>().updateProfile(
                   displayName: _nameController.text,
                   location: _locationController.text,
                 );
                 
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Profile updated successfully!')),
-                );
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Profile updated successfully!')),
+                  );
+                }
               },
               child: NeuCard(
                 color: AppColors.primaryCard,
