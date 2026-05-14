@@ -1,13 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'controllers/auth_controller.dart';
 import 'core/theme/app_colors.dart';
 import 'views/auth/auth_main_view.dart';
 import 'views/main/main_view.dart';
 
 /// The entry point for the BoiPao application.
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Load environment variables securely
+  await dotenv.load(fileName: ".env");
+
+  // Initialize Supabase Live Connection
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+  );
+
   // Encapsulate the global application within our central state provider
   runApp(
     ChangeNotifierProvider(
