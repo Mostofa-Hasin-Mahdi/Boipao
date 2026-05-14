@@ -7,7 +7,7 @@ enum UserRole {
 
 /// A dummy user class replicating what a Supabase Auth User or custom user profile will look like.
 /// 
-/// Extended for Phase 3 to track location and gamification stats.
+
 class DummyUser {
   final String id;
   final String email;
