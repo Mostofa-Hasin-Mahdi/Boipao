@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../controllers/main_controller.dart';
+import '../../controllers/auth_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/glass_nav_bar.dart';
 import '../home/home_view.dart';
 import '../profile/profile_view.dart';
+import '../listings/create_listing_view.dart';
 
 /// The central scaffolding view for the application.
 /// 
@@ -60,7 +63,23 @@ class _MainViewState extends State<MainView> {
             right: 24,
             child: FloatingActionButton(
               onPressed: () {
-                // Add material action
+                final auth = context.read<AuthController>();
+                final user = auth.currentUser;
+                
+                if (user != null && !user.isVerified) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please verify your student identity to post a listing!', style: TextStyle(color: Colors.black)),
+                      backgroundColor: AppColors.warning,
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CreateListingView()),
+                  );
+                }
               },
               backgroundColor: AppColors.navBar,
               elevation: 4,

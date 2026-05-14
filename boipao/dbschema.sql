@@ -148,3 +148,26 @@ CREATE POLICY "Users can insert claims" ON claims FOR INSERT WITH CHECK (auth.ui
 -- MESSAGES RLS
 CREATE POLICY "Users can see own messages" ON messages FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
 CREATE POLICY "Users can insert messages" ON messages FOR INSERT WITH CHECK (auth.uid() = sender_id);
+
+
+-- Storage Bucket policy (run this after creating a new public bucket called 'materials')
+-- Allow authenticated users to upload files to the 'materials' bucket
+CREATE POLICY "Allow authenticated uploads"
+ON storage.objects
+FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'materials');
+
+-- Allow authenticated users to update or delete their own files
+CREATE POLICY "Allow authenticated deletes"
+ON storage.objects
+FOR DELETE
+TO authenticated
+USING (bucket_id = 'materials' AND auth.uid() = owner);
+
+-- Allow anyone to read files from the 'materials' bucket
+CREATE POLICY "Allow public reads"
+ON storage.objects
+FOR SELECT
+TO public
+USING (bucket_id = 'materials');

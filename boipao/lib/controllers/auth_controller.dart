@@ -18,21 +18,27 @@ class AuthController extends ChangeNotifier {
   String get errorMessage => _errorMessage;
 
   AuthController() {
+    // As soon as the app starts, we begin listening to Supabase for any login/logout events.
     _initializeAuthListener();
   }
 
   /// Automatically binds to Supabase Auth state changes (Login, Logout, Token Refresh).
+  /// Think of this as our constantly running security guard.
   void _initializeAuthListener() {
     _authSubscription = _supabase.auth.onAuthStateChange.listen((data) async {
       final AuthChangeEvent event = data.event;
       final Session? session = data.session;
 
+      // If the user logs out or the session expires, we wipe the local profile
+      // so the app instantly boots them back to the login screen.
       if (event == AuthChangeEvent.signedOut || session == null) {
         _currentUser = null;
         notifyListeners();
         return;
       }
 
+      // If they just logged in, or if they opened the app while already logged in,
+      // we grab their full profile details (like Points and Verification status) from the database.
       if (event == AuthChangeEvent.signedIn || event == AuthChangeEvent.initialSession) {
         await _fetchProfile(session.user.id);
       }

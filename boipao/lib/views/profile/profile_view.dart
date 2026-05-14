@@ -4,6 +4,7 @@ import '../../controllers/auth_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/user_model.dart';
 import '../../widgets/neu_card.dart';
+import '../listings/my_listings_view.dart';
 import 'edit_profile_view.dart';
 
 class ProfileView extends StatelessWidget {
@@ -117,6 +118,31 @@ class ProfileView extends StatelessWidget {
               ),
             ),
           ),
+
+          if (user.role == UserRole.user) ...[
+            const SizedBox(height: 16),
+            // My Listings Action
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MyListingsView()),
+                );
+              },
+              child: NeuCard(
+                padding: 12.0,
+                child: const Center(
+                  child: Text(
+                    "My Listings",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textMain,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
 
           const SizedBox(height: 32),
 

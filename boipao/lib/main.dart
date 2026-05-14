@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'controllers/auth_controller.dart';
+import 'controllers/material_controller.dart';
 import 'core/theme/app_colors.dart';
 import 'views/auth/auth_main_view.dart';
 import 'views/main/main_view.dart';
@@ -23,8 +24,11 @@ Future<void> main() async {
 
   // Encapsulate the global application within our central state provider
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AuthController(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthController()),
+        ChangeNotifierProvider(create: (_) => MaterialController()),
+      ],
       child: const BoiPaoApp(),
     ),
   );
