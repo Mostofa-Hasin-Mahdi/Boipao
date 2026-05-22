@@ -63,6 +63,8 @@ class MaterialModel {
   final String year;
   final MaterialCondition condition;
   final String location;
+  final double? lat;
+  final double? lng;
   final List<String> imageUrls;
   final MaterialStatus status;
   final DateTime createdAt;
@@ -77,6 +79,8 @@ class MaterialModel {
     this.year = '',
     required this.condition,
     required this.location,
+    this.lat,
+    this.lng,
     this.imageUrls = const [],
     this.status = MaterialStatus.available,
     required this.createdAt,
@@ -94,6 +98,8 @@ class MaterialModel {
       year: json['year'] as String? ?? '',
       condition: MaterialCondition.fromString(json['condition'] as String),
       location: json['location'] as String,
+      lat: json['lat'] != null ? (json['lat'] as num).toDouble() : null,
+      lng: json['lng'] != null ? (json['lng'] as num).toDouble() : null,
       imageUrls: List<String>.from(json['image_urls'] ?? []),
       status: MaterialStatus.fromString(json['status'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -112,6 +118,8 @@ class MaterialModel {
       'year': year,
       'condition': condition.value,
       'location': location,
+      if (lat != null) 'lat': lat,
+      if (lng != null) 'lng': lng,
       'image_urls': imageUrls,
       'status': status.value,
     };

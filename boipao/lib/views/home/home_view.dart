@@ -4,10 +4,51 @@ import '../../controllers/auth_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/user_model.dart';
 import '../../widgets/neu_card.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../models/material_model.dart';
 
 /// The core landing page for logged-in users.
-class HomeView extends StatelessWidget {
+class HomeView extends StatefulWidget {
   const HomeView({super.key});
+
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+  final _supabase = Supabase.instance.client;
+  List<MaterialModel> _recentListings = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRecentListings();
+  }
+
+  Future<void> _fetchRecentListings() async {
+    try {
+      final data = await _supabase
+          .from('materials')
+          .select()
+          .eq('status', 'available')
+          .order('created_at', ascending: false)
+          .limit(10);
+      
+      if (mounted) {
+        setState(() {
+          _recentListings = (data as List).map((json) => MaterialModel.fromJson(json)).toList();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -221,17 +262,28 @@ class HomeView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildListingCard("Panjaree Chemistry 1st Paper Test Paper", "HSC 25 Batch • Good Condition", "Mirpur, Dhaka"),
-          const SizedBox(height: 16),
-          _buildListingCard("Royal Physics 2nd Paper Guide", "HSC 24 Batch • Almost New", "Uttara, Dhaka"),
-          const SizedBox(height: 16),
-          _buildListingCard("Higher Math Notes by উদ্ভাস", "HSC 25 Batch • Excellent", "Dhanmondi, Dhaka"),
+          if (_isLoading)
+            const Center(child: CircularProgressIndicator(color: AppColors.iconAccent))
+          else if (_recentListings.isEmpty)
+            const Text("No recent listings found.", style: TextStyle(color: AppColors.textSecondary))
+          else
+            ..._recentListings.map((material) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: _buildListingCard(
+                  material.title,
+                  "${material.examType.label} • ${material.condition.label}",
+                  material.location,
+                  imageUrl: material.imageUrls.isNotEmpty ? material.imageUrls.first : null,
+                ),
+              );
+            }),
         ],
       ),
     );
   }
 
-  Widget _buildListingCard(String title, String subtitle, String location) {
+  Widget _buildListingCard(String title, String subtitle, String location, {String? imageUrl}) {
     return NeuCard(
       padding: 16.0,
       child: Row(
@@ -243,8 +295,11 @@ class HomeView extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.darkCard.withOpacity(0.3),
               borderRadius: BorderRadius.circular(8),
+              image: imageUrl != null 
+                  ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
+                  : null,
             ),
-            child: const Icon(Icons.menu_book_rounded, color: AppColors.iconAccent),
+            child: imageUrl == null ? const Icon(Icons.menu_book_rounded, color: AppColors.iconAccent) : null,
           ),
           const SizedBox(width: 16),
           Expanded(

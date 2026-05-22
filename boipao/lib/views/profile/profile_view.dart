@@ -6,6 +6,7 @@ import '../../models/user_model.dart';
 import '../../widgets/neu_card.dart';
 import '../listings/my_listings_view.dart';
 import 'edit_profile_view.dart';
+import 'favourites_view.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -134,6 +135,28 @@ class ProfileView extends StatelessWidget {
                 child: const Center(
                   child: Text(
                     "My Listings",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textMain,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // My Favourites Action
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const FavouritesView()),
+                );
+              },
+              child: NeuCard(
+                padding: 12.0,
+                child: const Center(
+                  child: Text(
+                    "My Favourites",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: AppColors.textMain,

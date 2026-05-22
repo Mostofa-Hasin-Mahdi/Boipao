@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/neu_card.dart';
 import '../../models/material_model.dart';
@@ -23,6 +25,11 @@ class _CreateListingViewState extends State<CreateListingView> {
   final _descriptionController = TextEditingController();
   final _subjectController = TextEditingController();
   final _yearController = TextEditingController();
+  final _locationController = TextEditingController();
+  
+  double? _lat;
+  double? _lng;
+  bool _isGettingLocation = false;
   
   ExamType _selectedExam = ExamType.ssc;
   MaterialCondition _selectedCondition = MaterialCondition.good;
@@ -37,6 +44,57 @@ class _CreateListingViewState extends State<CreateListingView> {
       setState(() {
         _selectedImages.addAll(pickedImages);
       });
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _isGettingLocation = true;
+    });
+
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled.');
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied');
+        }
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Location permissions are permanently denied');
+      } 
+
+      Position position = await Geolocator.getCurrentPosition();
+      
+      List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+        String area = place.subLocality ?? place.locality ?? place.administrativeArea ?? 'Unknown Location';
+        
+        setState(() {
+          _lat = position.latitude;
+          _lng = position.longitude;
+          _locationController.text = area;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGettingLocation = false;
+        });
+      }
     }
   }
 
@@ -56,11 +114,11 @@ class _CreateListingViewState extends State<CreateListingView> {
     final materialController = context.read<MaterialController>();
     final authController = context.read<AuthController>();
     
-    // We grab the user's location from their profile so we know where the book is located.
-    final location = authController.currentUser?.location ?? 'Dhaka';
+    String finalLocation = _locationController.text.trim();
+    if (finalLocation.isEmpty) {
+        finalLocation = authController.currentUser?.location ?? 'Dhaka';
+    }
 
-    // 3. Send all this data to our MaterialController, which handles uploading the images 
-    // to Supabase Storage and saving the text to our database.
     final success = await materialController.createListing(
       title: _titleController.text,
       description: _descriptionController.text,
@@ -68,7 +126,9 @@ class _CreateListingViewState extends State<CreateListingView> {
       subject: _subjectController.text,
       year: _yearController.text,
       condition: _selectedCondition,
-      location: location,
+      location: finalLocation,
+      lat: _lat,
+      lng: _lng,
       images: _selectedImages,
     );
 
@@ -158,6 +218,22 @@ class _CreateListingViewState extends State<CreateListingView> {
                     _buildTextField(_descriptionController, "Description (Optional)", "Condition details, edition, etc.", Icons.description, maxLines: 3),
                     const SizedBox(height: 16),
                     _buildTextField(_yearController, "Year/Edition", "e.g. 2023", Icons.calendar_today),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildTextField(_locationController, "Location", "e.g. Uttara (or use GPS)", Icons.location_on),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          onPressed: _isGettingLocation ? null : _getCurrentLocation,
+                          icon: _isGettingLocation 
+                              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                              : const Icon(Icons.my_location, color: AppColors.iconAccent),
+                          tooltip: 'Use Current Location',
+                        )
+                      ],
+                    ),
                     const SizedBox(height: 24),
 
                     // Dropdowns

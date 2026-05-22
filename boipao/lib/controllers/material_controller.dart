@@ -80,6 +80,8 @@ class MaterialController extends ChangeNotifier {
     required String year,
     required MaterialCondition condition,
     required String location,
+    double? lat,
+    double? lng,
     required List<XFile> images,
   }) async {
     final user = _supabase.auth.currentUser;
@@ -102,6 +104,8 @@ class MaterialController extends ChangeNotifier {
         year: year,
         condition: condition,
         location: location,
+        lat: lat,
+        lng: lng,
         imageUrls: imageUrls,
         createdAt: DateTime.now(), // Local placeholder
       );
@@ -130,6 +134,8 @@ class MaterialController extends ChangeNotifier {
     required String year,
     required MaterialCondition condition,
     required String location,
+    double? lat,
+    double? lng,
     // Note: We are keeping image updates simple for now. If they want to change images, they'll have to delete and recreate, or we can add complex image sync logic later.
   }) async {
     _setLoading(true);
@@ -142,6 +148,8 @@ class MaterialController extends ChangeNotifier {
         'year': year,
         'condition': condition.value,
         'location': location,
+        if (lat != null) 'lat': lat,
+        if (lng != null) 'lng': lng,
         // status and image_urls stay the same
       };
 
