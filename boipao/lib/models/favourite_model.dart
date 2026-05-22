@@ -1,3 +1,5 @@
+/// Represents a user's favourited material listing.
+/// Maps directly to the `favourites` table in Supabase.
 class FavouriteModel {
   final String id;
   final String userId;
@@ -11,6 +13,7 @@ class FavouriteModel {
     required this.createdAt,
   });
 
+  /// Parses JSON from the Supabase `favourites` table.
   factory FavouriteModel.fromJson(Map<String, dynamic> json) {
     return FavouriteModel(
       id: json['id'] as String,
@@ -20,6 +23,7 @@ class FavouriteModel {
     );
   }
 
+  /// Converts the model back into a Supabase-compatible JSON map for insert.
   Map<String, dynamic> toJson() {
     return {
       if (id.isNotEmpty) 'id': id,

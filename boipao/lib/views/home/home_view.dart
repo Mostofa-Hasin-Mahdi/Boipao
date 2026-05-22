@@ -20,24 +20,65 @@ class _HomeViewState extends State<HomeView> {
   List<MaterialModel> _recentListings = [];
   bool _isLoading = true;
 
+  String? _lastLocation;
+
   @override
-  void initState() {
-    super.initState();
-    _fetchRecentListings();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Watch AuthController for changes
+    final authController = context.watch<AuthController>();
+    final currentLocation = authController.currentUser?.location;
+
+    // If it's the first load, or if the user's location has changed since the last fetch
+    if (_lastLocation != currentLocation) {
+      _lastLocation = currentLocation;
+      
+      // Delaying the fetch slightly prevents setState during the build phase
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _fetchRecentListings();
+      });
+    }
   }
 
+  /// Fetches the 10 most recent available materials.
+  /// First, it attempts to find materials within the user's specific location.
+  /// If 0 materials are found, it falls back to a global search.
   Future<void> _fetchRecentListings() async {
     try {
-      final data = await _supabase
+      final userLocation = context.read<AuthController>().currentUser?.location ?? '';
+      
+      // Base query
+      var filterBuilder = _supabase
           .from('materials')
           .select()
-          .eq('status', 'available')
+          .eq('status', 'available');
+          
+      // If user has a location set, try fetching for that specific location first
+      if (userLocation.isNotEmpty) {
+        final localData = await filterBuilder
+            .ilike('location', '%$userLocation%')
+            .order('created_at', ascending: false)
+            .limit(10);
+        
+        if ((localData as List).isNotEmpty) {
+          if (mounted) {
+            setState(() {
+              _recentListings = localData.map((json) => MaterialModel.fromJson(json)).toList();
+              _isLoading = false;
+            });
+          }
+          return; // Exit early since we found local results!
+        }
+      }
+
+      // Fallback: If no location is set, OR if 0 local results were found, do a global fetch
+      final globalData = await filterBuilder
           .order('created_at', ascending: false)
           .limit(10);
       
       if (mounted) {
         setState(() {
-          _recentListings = (data as List).map((json) => MaterialModel.fromJson(json)).toList();
+          _recentListings = (globalData as List).map((json) => MaterialModel.fromJson(json)).toList();
           _isLoading = false;
         });
       }

@@ -4,6 +4,8 @@ import '../../core/theme/app_colors.dart';
 import '../../models/material_model.dart';
 import '../../widgets/neu_card.dart';
 
+/// A dedicated view for searching through available material listings.
+/// Users can search by title using Supabase's full-text/ilike search capabilities.
 class SearchView extends StatefulWidget {
   const SearchView({super.key});
 
@@ -19,6 +21,8 @@ class _SearchViewState extends State<SearchView> {
   bool _isLoading = false;
   String _errorMessage = '';
 
+  /// Executes the search query against the Supabase `materials` table.
+  /// Uses an `ilike` filter to find partial matches in the material's title.
   Future<void> _performSearch() async {
     final query = _searchController.text.trim();
     if (query.isEmpty) {

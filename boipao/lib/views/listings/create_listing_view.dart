@@ -47,6 +47,8 @@ class _CreateListingViewState extends State<CreateListingView> {
     }
   }
 
+  /// Requests location permissions from the user and fetches their current GPS coordinates.
+  /// Uses reverse geocoding to translate those coordinates into a readable area name.
   Future<void> _getCurrentLocation() async {
     setState(() {
       _isGettingLocation = true;

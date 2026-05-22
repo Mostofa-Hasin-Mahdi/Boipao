@@ -51,7 +51,10 @@ class _MainViewState extends State<MainView> {
       extendBody: true, // Important so body goes behind bottom nav
       body: Stack(
         children: [
-          _pages[_controller.currentIndex],
+          IndexedStack(
+            index: _controller.currentIndex,
+            children: _pages,
+          ),
           Align(
             alignment: Alignment.bottomCenter,
             child: GlassNavBar(

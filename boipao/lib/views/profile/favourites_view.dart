@@ -6,6 +6,8 @@ import '../../models/material_model.dart';
 import '../../widgets/neu_card.dart';
 import '../../controllers/auth_controller.dart';
 
+/// A view that fetches and displays the materials a user has bookmarked as favourites.
+/// It performs a two-step query: first fetching the favourite IDs, then fetching the actual materials.
 class FavouritesView extends StatefulWidget {
   const FavouritesView({super.key});
 
@@ -25,6 +27,7 @@ class _FavouritesViewState extends State<FavouritesView> {
     _fetchFavourites();
   }
 
+  /// Fetches the user's favourites from Supabase.
   Future<void> _fetchFavourites() async {
     final user = context.read<AuthController>().currentUser;
     if (user == null) return;
