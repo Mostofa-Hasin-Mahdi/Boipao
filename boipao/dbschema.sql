@@ -79,6 +79,8 @@ CREATE TABLE materials (
     year TEXT,
     condition material_condition NOT NULL,
     location TEXT NOT NULL,
+    lat DOUBLE PRECISION,
+    lng DOUBLE PRECISION,
     image_urls TEXT[] DEFAULT '{}'::TEXT[], -- Array of Supabase Storage URLs
     status material_status DEFAULT 'available'::material_status NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
@@ -115,6 +117,17 @@ CREATE TABLE messages (
 
 
 -- ==========================================
+-- 6. FAVOURITES TABLE (Phase 6)
+-- ==========================================
+CREATE TABLE favourites (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+    material_id UUID REFERENCES materials(id) ON DELETE CASCADE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    UNIQUE(user_id, material_id)
+);
+
+-- ==========================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- ==========================================
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -122,6 +135,7 @@ ALTER TABLE student_verifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE materials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE claims ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE favourites ENABLE ROW LEVEL SECURITY;
 
 -- PROFILES RLS
 CREATE POLICY "Profiles are viewable by everyone" ON profiles FOR SELECT USING (true);
@@ -148,6 +162,11 @@ CREATE POLICY "Users can insert claims" ON claims FOR INSERT WITH CHECK (auth.ui
 -- MESSAGES RLS
 CREATE POLICY "Users can see own messages" ON messages FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
 CREATE POLICY "Users can insert messages" ON messages FOR INSERT WITH CHECK (auth.uid() = sender_id);
+
+-- FAVOURITES RLS
+CREATE POLICY "Users can view own favourites" ON favourites FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own favourites" ON favourites FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own favourites" ON favourites FOR DELETE USING (auth.uid() = user_id);
 
 
 -- Storage Bucket policy (run this after creating a new public bucket called 'materials')

@@ -11,7 +11,6 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Tap into the Dummy Auth session to verify our Phase 2 role conditional logic
     final authController = context.watch<AuthController>();
     final roleName = authController.currentUser?.role.name.toUpperCase() ?? 'GUEST';
 
