@@ -144,7 +144,16 @@ CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.
 -- VERIFICATIONS RLS
 CREATE POLICY "Users can view own verifications" ON student_verifications FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert own verifications" ON student_verifications FOR INSERT WITH CHECK (auth.uid() = user_id);
--- Admins will need a specific policy or bypass RLS entirely to view/update all verifications
+-- Admins can view and update all verifications
+CREATE POLICY "Admins can view all verifications" ON student_verifications 
+FOR SELECT USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'::user_role)
+);
+
+CREATE POLICY "Admins can update all verifications" ON student_verifications 
+FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'::user_role)
+);
 
 -- MATERIALS RLS
 CREATE POLICY "Materials viewable by everyone" ON materials FOR SELECT USING (true);
@@ -190,3 +199,45 @@ ON storage.objects
 FOR SELECT
 TO public
 USING (bucket_id = 'materials');
+
+-- ==========================================
+-- STORAGE POLICIES FOR ID CARDS (Phase 7)
+-- ==========================================
+-- Allow authenticated users to upload their own ID cards
+CREATE POLICY "Allow authenticated ID card uploads"
+ON storage.objects
+FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'id_cards');
+
+-- Allow admins to read ID cards, and users to read their own
+CREATE POLICY "Allow ID card reads"
+ON storage.objects
+FOR SELECT
+TO authenticated
+USING (bucket_id = 'id_cards');
+
+-- Allow admins and owners to delete ID cards
+CREATE POLICY "Allow ID card deletes"
+ON storage.objects
+FOR DELETE
+TO authenticated
+USING (bucket_id = 'id_cards');
+
+-- ==========================================
+-- TRIGGERS FOR VERIFICATION (Phase 7)
+-- ==========================================
+-- Trigger to update user is_verified status when verification is approved
+CREATE OR REPLACE FUNCTION public.handle_verification_approval()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.status = 'approved' AND OLD.status = 'pending' THEN
+    UPDATE public.profiles SET is_verified = true WHERE id = NEW.user_id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_verification_approved
+  AFTER UPDATE OF status ON student_verifications
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_verification_approval();

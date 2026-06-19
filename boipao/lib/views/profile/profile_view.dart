@@ -7,6 +7,8 @@ import '../../widgets/neu_card.dart';
 import '../listings/my_listings_view.dart';
 import 'edit_profile_view.dart';
 import 'favourites_view.dart';
+import 'verification_view.dart';
+import '../admin/admin_dashboard_view.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -121,6 +123,37 @@ class ProfileView extends StatelessWidget {
           ),
 
           if (user.role == UserRole.user) ...[
+            if (!user.isVerified) ...[
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const VerificationView()),
+                  );
+                },
+                child: NeuCard(
+                  color: AppColors.primaryCard,
+                  padding: 12.0,
+                  child: const Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.verified_user_outlined, color: AppColors.textMain),
+                        SizedBox(width: 8),
+                        Text(
+                          "Verify Student ID",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textMain,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             // My Listings Action
             GestureDetector(
@@ -274,20 +307,35 @@ class ProfileView extends StatelessWidget {
             const SizedBox(height: 16),
             _buildActivityCard("Claimed Oxford Dictionary", "1 week ago", Icons.hourglass_empty),
           ] else if (user.role == UserRole.admin) ...[
-            const Text(
-              "Student Verification List",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textMain,
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminDashboardView()),
+                );
+              },
+              child: NeuCard(
+                color: AppColors.secondary,
+                padding: 16.0,
+                child: const Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.admin_panel_settings, color: AppColors.secondary, size: 28),
+                      SizedBox(width: 12),
+                      Text(
+                        "Open Admin Dashboard",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textMain,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            _buildVerificationCard("Hamidur Rahman", "Dhaka Residential Model College", "Class 12"),
-            const SizedBox(height: 16),
-            _buildVerificationCard("Hasin Mahdi", "Milestone College", "Class 11"),
-            const SizedBox(height: 16),
-            _buildVerificationCard("Sayma Sultana", "Akij College", "Class 12"),
           ]
         ],
       ),
@@ -328,57 +376,4 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  Widget _buildVerificationCard(String studentName, String schoolName, String classNumber) {
-    return NeuCard(
-      padding: 16.0,
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withOpacity(0.5),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.badge_rounded, color: AppColors.textMain),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  studentName,
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textMain, fontSize: 16),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  schoolName,
-                  style: TextStyle(fontSize: 13, color: AppColors.textMain.withOpacity(0.7)),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  classNumber,
-                  style: const TextStyle(fontSize: 12, color: AppColors.iconAccent, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
-          // Accept & Reject Actions
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.close_rounded, color: Colors.redAccent),
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: const Icon(Icons.check_circle_rounded, color: Colors.green),
-                onPressed: () {},
-              ),
-            ],
-          )
-        ],
-      ),
-    );
-  }
 }
