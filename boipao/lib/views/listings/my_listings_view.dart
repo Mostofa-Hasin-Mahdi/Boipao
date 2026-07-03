@@ -5,6 +5,7 @@ import '../../widgets/neu_card.dart';
 import '../../controllers/material_controller.dart';
 import '../../models/material_model.dart';
 import 'edit_listing_view.dart';
+import 'listing_details_view.dart';
 
 class MyListingsView extends StatefulWidget {
   const MyListingsView({super.key});
@@ -89,8 +90,15 @@ class _MyListingsViewState extends State<MyListingsView> {
                   separatorBuilder: (_, __) => const SizedBox(height: 16),
                   itemBuilder: (context, index) {
                     final material = controller.myListings[index];
-                    return NeuCard(
-                      padding: 16.0,
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => ListingDetailsView(material: material)),
+                        );
+                      },
+                      child: NeuCard(
+                        padding: 16.0,
                       child: Row(
                         children: [
                           // Thumbnail
@@ -167,8 +175,9 @@ class _MyListingsViewState extends State<MyListingsView> {
                           )
                         ],
                       ),
-                    );
-                  },
+                    ),
+                  );
+                },
                 ),
     );
   }

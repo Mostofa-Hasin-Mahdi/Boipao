@@ -6,6 +6,7 @@ import '../../models/user_model.dart';
 import '../../widgets/neu_card.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/material_model.dart';
+import '../listings/listing_details_view.dart';
 
 /// The core landing page for logged-in users.
 class HomeView extends StatefulWidget {
@@ -311,12 +312,7 @@ class _HomeViewState extends State<HomeView> {
             ..._recentListings.map((material) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
-                child: _buildListingCard(
-                  material.title,
-                  "${material.examType.label} • ${material.condition.label}",
-                  material.location,
-                  imageUrl: material.imageUrls.isNotEmpty ? material.imageUrls.first : null,
-                ),
+                child: _buildListingCard(material),
               );
             }),
         ],
@@ -324,65 +320,80 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildListingCard(String title, String subtitle, String location, {String? imageUrl}) {
-    return NeuCard(
-      padding: 16.0,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 60,
-            height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.darkCard.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(8),
-              image: imageUrl != null 
-                  ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
-                  : null,
-            ),
-            child: imageUrl == null ? const Icon(Icons.menu_book_rounded, color: AppColors.iconAccent) : null,
+  Widget _buildListingCard(MaterialModel material) {
+    final title = material.title;
+    final subtitle = "${material.examType.label} • ${material.condition.label}";
+    final location = material.location;
+    final imageUrl = material.imageUrls.isNotEmpty ? material.imageUrls.first : null;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ListingDetailsView(material: material),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textMain,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textMain.withOpacity(0.8),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on_rounded, size: 14, color: AppColors.iconAccent),
-                    const SizedBox(width: 4),
-                    Text(
-                      location,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textMain,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+        );
+      },
+      child: NeuCard(
+        padding: 16.0,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 60,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.darkCard.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+                image: imageUrl != null 
+                    ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
+                    : null,
+              ),
+              child: imageUrl == null ? const Icon(Icons.menu_book_rounded, color: AppColors.iconAccent) : null,
             ),
-          )
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textMain,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textMain.withOpacity(0.8),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_rounded, size: 14, color: AppColors.iconAccent),
+                      const SizedBox(width: 4),
+                      Text(
+                        location,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textMain,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

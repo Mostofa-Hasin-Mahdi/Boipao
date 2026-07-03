@@ -9,6 +9,7 @@ import 'edit_profile_view.dart';
 import 'favourites_view.dart';
 import 'verification_view.dart';
 import '../admin/admin_dashboard_view.dart';
+import 'my_claims_view.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -168,6 +169,28 @@ class ProfileView extends StatelessWidget {
                 child: const Center(
                   child: Text(
                     "My Listings",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textMain,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // My Claims Action
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MyClaimsView()),
+                );
+              },
+              child: NeuCard(
+                padding: 12.0,
+                child: const Center(
+                  child: Text(
+                    "My Claims",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: AppColors.textMain,

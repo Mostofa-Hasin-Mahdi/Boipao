@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../controllers/admin_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/neu_card.dart';

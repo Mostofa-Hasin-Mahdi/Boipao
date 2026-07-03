@@ -5,6 +5,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/material_controller.dart';
+import 'controllers/admin_controller.dart';
+import 'controllers/verification_controller.dart';
+import 'controllers/claim_controller.dart';
 import 'core/theme/app_colors.dart';
 import 'views/auth/auth_main_view.dart';
 import 'views/main/main_view.dart';
@@ -28,6 +31,9 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => MaterialController()),
+        ChangeNotifierProvider(create: (_) => AdminController()),
+        ChangeNotifierProvider(create: (_) => VerificationController()),
+        ChangeNotifierProvider(create: (_) => ClaimController()),
       ],
       child: const BoiPaoApp(),
     ),

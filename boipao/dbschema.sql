@@ -167,6 +167,10 @@ CREATE POLICY "Donors can see claims on their materials" ON claims FOR SELECT US
     auth.uid() IN (SELECT donor_id FROM materials WHERE id = material_id)
 );
 CREATE POLICY "Users can insert claims" ON claims FOR INSERT WITH CHECK (auth.uid() = requester_id);
+CREATE POLICY "Donors can update claims on their materials" ON claims FOR UPDATE USING (
+    auth.uid() IN (SELECT donor_id FROM materials WHERE id = material_id)
+);
+CREATE POLICY "Users can update own claims" ON claims FOR UPDATE USING (auth.uid() = requester_id);
 
 -- MESSAGES RLS
 CREATE POLICY "Users can see own messages" ON messages FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
@@ -241,3 +245,27 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_verification_approved
   AFTER UPDATE OF status ON student_verifications
   FOR EACH ROW EXECUTE PROCEDURE public.handle_verification_approval();
+
+-- ==========================================
+-- TRIGGERS FOR CLAIMS (Phase 8)
+-- ==========================================
+-- Trigger to update material status when a claim is approved or completed
+CREATE OR REPLACE FUNCTION public.handle_claim_status_change()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.status = 'approved' AND OLD.status != 'approved' THEN
+    -- Set the material to pending (transfer in progress)
+    UPDATE public.materials SET status = 'pending' WHERE id = NEW.material_id;
+    -- Auto-reject all other pending claims for this material
+    UPDATE public.claims SET status = 'rejected' WHERE material_id = NEW.material_id AND id != NEW.id AND status = 'pending';
+  ELSIF NEW.status = 'completed' AND OLD.status != 'completed' THEN
+    -- Set the material to claimed (handover complete)
+    UPDATE public.materials SET status = 'claimed' WHERE id = NEW.material_id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_claim_status_changed
+  AFTER UPDATE OF status ON claims
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_claim_status_change();
