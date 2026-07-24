@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/material_model.dart';
 import '../../widgets/neu_card.dart';
+import '../listings/listing_details_view.dart';
 
 /// A dedicated view for searching through available material listings.
 /// Users can search by title using Supabase's full-text/ilike search capabilities.
@@ -104,47 +105,57 @@ class _SearchViewState extends State<SearchView> {
                   separatorBuilder: (context, index) => const SizedBox(height: 16),
                   itemBuilder: (context, index) {
                     final material = _searchResults[index];
-                    return NeuCard(
-                      padding: 16.0,
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.grey.shade300,
-                              image: material.imageUrls.isNotEmpty
-                                  ? DecorationImage(
-                                      image: NetworkImage(material.imageUrls.first),
-                                      fit: BoxFit.cover,
-                                    )
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ListingDetailsView(material: material),
+                          ),
+                        );
+                      },
+                      child: NeuCard(
+                        padding: 16.0,
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.grey.shade300,
+                                image: material.imageUrls.isNotEmpty
+                                    ? DecorationImage(
+                                        image: NetworkImage(material.imageUrls.first),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null,
+                              ),
+                              child: material.imageUrls.isEmpty
+                                  ? const Icon(Icons.book, color: Colors.white, size: 40)
                                   : null,
                             ),
-                            child: material.imageUrls.isEmpty
-                                ? const Icon(Icons.book, color: Colors.white, size: 40)
-                                : null,
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(material.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textMain)),
-                                const SizedBox(height: 4),
-                                Text(material.subject, style: const TextStyle(color: AppColors.textSecondary)),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.location_on, size: 14, color: AppColors.iconAccent),
-                                    const SizedBox(width: 4),
-                                    Expanded(child: Text(material.location, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary), overflow: TextOverflow.ellipsis)),
-                                  ],
-                                ),
-                              ],
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(material.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textMain)),
+                                  const SizedBox(height: 4),
+                                  Text(material.subject, style: const TextStyle(color: AppColors.textSecondary)),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.location_on, size: 14, color: AppColors.iconAccent),
+                                      const SizedBox(width: 4),
+                                      Expanded(child: Text(material.location, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary), overflow: TextOverflow.ellipsis)),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },

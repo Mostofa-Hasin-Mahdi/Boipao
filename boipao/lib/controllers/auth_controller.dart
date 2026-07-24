@@ -40,13 +40,13 @@ class AuthController extends ChangeNotifier {
       // If they just logged in, or if they opened the app while already logged in,
       // we grab their full profile details (like Points and Verification status) from the database.
       if (event == AuthChangeEvent.signedIn || event == AuthChangeEvent.initialSession) {
-        await _fetchProfile(session.user.id);
+        await fetchProfile(session.user.id);
       }
     });
   }
 
   /// Fetches the extended profile data from the public `profiles` table.
-  Future<void> _fetchProfile(String userId) async {
+  Future<void> fetchProfile(String userId) async {
     _setLoading(true);
     try {
       final data = await _supabase

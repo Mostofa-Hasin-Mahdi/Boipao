@@ -13,12 +13,13 @@ class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
   @override
-  State<HomeView> createState() => _HomeViewState();
+  State<HomeView> createState() => HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class HomeViewState extends State<HomeView> {
   final _supabase = Supabase.instance.client;
   List<MaterialModel> _recentListings = [];
+  MaterialModel? _featuredMaterial;
   bool _isLoading = true;
 
   String? _lastLocation;
@@ -36,15 +37,49 @@ class _HomeViewState extends State<HomeView> {
       
       // Delaying the fetch slightly prevents setState during the build phase
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _fetchRecentListings();
+        fetchRecentListings();
+        fetchFeaturedMaterial();
       });
+    }
+  }
+
+  Future<void> fetchFeaturedMaterial() async {
+    try {
+      final data = await _supabase
+          .from('materials')
+          .select('*, profiles(points)')
+          .eq('status', 'available');
+          
+      if ((data as List).isNotEmpty) {
+        final materialsList = List<Map<String, dynamic>>.from(data);
+        
+        materialsList.sort((a, b) {
+          final pointsA = (a['profiles']?['points'] as int?) ?? 0;
+          final pointsB = (b['profiles']?['points'] as int?) ?? 0;
+          return pointsB.compareTo(pointsA);
+        });
+        
+        if (mounted) {
+          setState(() {
+            _featuredMaterial = MaterialModel.fromJson(materialsList.first);
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _featuredMaterial = null;
+          });
+        }
+      }
+    } catch (e) {
+      // Ignore softly
     }
   }
 
   /// Fetches the 10 most recent available materials.
   /// First, it attempts to find materials within the user's specific location.
   /// If 0 materials are found, it falls back to a global search.
-  Future<void> _fetchRecentListings() async {
+  Future<void> fetchRecentListings() async {
     try {
       final userLocation = context.read<AuthController>().currentUser?.location ?? '';
       
@@ -197,103 +232,66 @@ class _HomeViewState extends State<HomeView> {
               ),
             ),
             
-          const SizedBox(height: 24),
-          NeuCard(
-            color: AppColors.primaryCard,
-            padding: 24.0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Featured Material",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textMain,
+          if (_featuredMaterial != null) ...[
+            const SizedBox(height: 24),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ListingDetailsView(material: _featuredMaterial!),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  "HSC 2024 Physics Test Papers\nCondition: Like New",
-                  style: TextStyle(
-                    fontSize: 15,
-                    height: 1.5,
-                    color: AppColors.textMain.withOpacity(0.9),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.background.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      "Claim Now",
+                ).then((_) {
+                  fetchRecentListings();
+                  fetchFeaturedMaterial();
+                });
+              },
+              child: NeuCard(
+                color: AppColors.primaryCard,
+                padding: 24.0,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Featured Material",
                       style: TextStyle(
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textMain,
                       ),
                     ),
-                  ),
-                )
-              ],
+                    const SizedBox(height: 12),
+                    Text(
+                      "${_featuredMaterial!.title}\nCondition: ${_featuredMaterial!.condition.label}",
+                      style: TextStyle(
+                        fontSize: 15,
+                        height: 1.5,
+                        color: AppColors.textMain.withOpacity(0.9),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.background.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          "Claim Now",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textMain,
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 32),
-          Row(
-            children: [
-              Expanded(
-                child: NeuCard(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        children: [
-                          Icon(Icons.volunteer_activism_rounded, size: 36, color: AppColors.iconAccent),
-                          const SizedBox(height: 8),
-                          const Text(
-                            "Donate",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textMain,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: NeuCard(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        children: [
-                          Icon(Icons.search_rounded, size: 36, color: AppColors.iconAccent),
-                          const SizedBox(height: 8),
-                          const Text(
-                            "Find Books",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textMain,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          ],
           const SizedBox(height: 32),
           const Text(
             "Recent Listings",

@@ -22,20 +22,30 @@ class MainView extends StatefulWidget {
 
 class _MainViewState extends State<MainView> {
   final MainController _controller = MainController();
+  final GlobalKey<HomeViewState> _homeKey = GlobalKey<HomeViewState>();
 
-  final List<Widget> _pages = [
-    const HomeView(),
-    const SearchView(),
-    const InboxView(),
-    const NotificationsView(),
-    const ProfileView(),
-  ];
+  late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
+    _pages = [
+      HomeView(key: _homeKey),
+      const SearchView(),
+      const InboxView(),
+      const NotificationsView(),
+      const ProfileView(),
+    ];
+    
     _controller.addListener(() {
       setState(() {});
+      if (_controller.currentIndex == 4) {
+        final auth = context.read<AuthController>();
+        final user = auth.currentUser;
+        if (user != null) {
+          auth.fetchProfile(user.id);
+        }
+      }
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -53,6 +63,9 @@ class _MainViewState extends State<MainView> {
 
   @override
   Widget build(BuildContext context) {
+    final notifCtrl = context.watch<NotificationController>();
+    final hasUnreadNotifs = notifCtrl.unreadCount > 0;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       extendBody: true,
@@ -67,6 +80,7 @@ class _MainViewState extends State<MainView> {
             child: GlassNavBar(
               selectedIndex: _controller.currentIndex,
               onItemSelected: _controller.changeTab,
+              hasUnreadNotifications: hasUnreadNotifs,
             ),
           ),
           Positioned(
@@ -89,7 +103,12 @@ class _MainViewState extends State<MainView> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const CreateListingView()),
-                  );
+                  ).then((_) {
+                    _homeKey.currentState?.fetchRecentListings();
+                    _homeKey.currentState?.fetchFeaturedMaterial();
+                    // Also tell MaterialController to refresh my listings just in case they go to Profile tab next
+                    // To do this we would need context, but MainView is above MyListingsView so the best place to refresh MyListings is when MyListingsView opens. But we can trigger a global refresh event if we want.
+                  });
                 }
               },
               backgroundColor: AppColors.navBar,

@@ -5,11 +5,15 @@ import '../../core/theme/app_colors.dart';
 class GlassNavBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onItemSelected;
+  final bool hasUnreadInbox;
+  final bool hasUnreadNotifications;
 
   const GlassNavBar({
     super.key,
     required this.selectedIndex,
     required this.onItemSelected,
+    this.hasUnreadInbox = false,
+    this.hasUnreadNotifications = false,
   });
 
   @override
@@ -36,9 +40,9 @@ class GlassNavBar extends StatelessWidget {
           const SizedBox(width: 4),
           _buildNavItem(Icons.search_rounded, "Search", 1),
           const SizedBox(width: 4),
-          _buildNavItem(Icons.chat_bubble_outline_rounded, "Inbox", 2),
+          _buildNavItem(Icons.chat_bubble_outline_rounded, "Inbox", 2, hasUnread: hasUnreadInbox),
           const SizedBox(width: 4),
-          _buildNavItem(Icons.notifications_none_rounded, "Alerts", 3),
+          _buildNavItem(Icons.notifications_none_rounded, "Alerts", 3, hasUnread: hasUnreadNotifications),
           const SizedBox(width: 4),
           _buildNavItem(Icons.person_rounded, "Profile", 4),
         ],
@@ -46,7 +50,7 @@ class GlassNavBar extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, int index) {
+  Widget _buildNavItem(IconData icon, String label, int index, {bool hasUnread = false}) {
     final isSelected = selectedIndex == index;
     return GestureDetector(
       onTap: () => onItemSelected(index),
@@ -64,10 +68,28 @@ class GlassNavBar extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                icon,
-                color: isSelected ? AppColors.navBar : AppColors.secondary,
-                size: 22,
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(
+                    icon,
+                    color: isSelected ? AppColors.navBar : AppColors.secondary,
+                    size: 22,
+                  ),
+                  if (hasUnread)
+                    Positioned(
+                      top: -2,
+                      right: -2,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               if (isSelected)
                 Padding(

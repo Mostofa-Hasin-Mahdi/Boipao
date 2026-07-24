@@ -24,8 +24,10 @@ class _ProfileViewState extends State<ProfileView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final user = context.read<AuthController>().currentUser;
+      final auth = context.read<AuthController>();
+      final user = auth.currentUser;
       if (user != null) {
+        auth.fetchProfile(user.id);
         context.read<ReviewController>().fetchUserReviews(user.id);
       }
     });
