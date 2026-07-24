@@ -4,12 +4,14 @@
 ![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/postgresql-4169e1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Mistral AI](https://img.shields.io/badge/Mistral%20AI-FF7000?style=for-the-badge&logo=mistral&logoColor=white)
 
 Boipao is a localized, student-centric academic material sharing application. It enables students to easily donate, exchange, and claim educational materials such as books, test papers, and notes within their local communities. To encourage active participation, Boipao incorporates a gamification system where users earn points, badges, and reputation through successful material donations and positive reviews.
 
 ## 🚀 Features
 
 * **Authentication & Profiles:** Secure email/password login, customizable profiles, and an Admin verification system for student IDs.
+* **AI-Powered OCR Verification:** Uses Mistral's Pixtral 12B model (via a Supabase Edge Function) to automatically extract text and information from uploaded student ID cards for seamless verification.
 * **Listings & Search:** Browse recent and featured listings, search by title, and filter by subject/condition.
 * **Material Claims & Chat:** Request materials from donors and communicate in real-time through an integrated chat system.
 * **Real-time Notifications:** Get instantly notified when someone requests your material, accepts your claim, or sends you a message.
@@ -109,6 +111,22 @@ sequenceDiagram
     App UI-->>App UI: Shows red dot on Nav Bar
     App UI->>NotificationController: User taps notification (markAsRead)
     NotificationController->>Notifications Table: Update is_read = true
+```
+
+### 4. AI-Powered OCR Verification Flow
+```mermaid
+sequenceDiagram
+    participant User
+    participant VerificationController
+    participant Mistral Pixtral 12B (Edge Function)
+    participant Database (Supabase)
+
+    User->>VerificationController: Uploads Student ID Image
+    VerificationController->>Mistral Pixtral 12B (Edge Function): Sends base64 image
+    Mistral Pixtral 12B (Edge Function)-->>VerificationController: Returns extracted JSON data
+    VerificationController->>User: Displays Extracted Data for review
+    User->>VerificationController: Submits Verification Request
+    VerificationController->>Database (Supabase): Uploads image to bucket & sets profile to pending
 ```
 
 ---
