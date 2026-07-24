@@ -13,5 +13,10 @@ class AppColors {
   static const Color iconAccent = Color(0xFF8BA07E);   // A deeply saturated, darker variant of primaryCard used specifically for colored icons
   static const Color warning = Color(0xFFE8D0B3);      // A soft, warm beige/orange for attention banners (e.g. unverified status)
   static const Color rewardGold = Color(0xFFF0E0AD);   // Soft, muted gold accent specifically for points and leaderboards
+
+  // Aliases for compatibility
+  static const Color primary = primaryCard;
+  static const Color surface = Colors.white;
+  static const Color border = secondary;
 }
 

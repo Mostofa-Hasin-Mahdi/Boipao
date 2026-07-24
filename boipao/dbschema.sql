@@ -269,3 +269,38 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_claim_status_changed
   AFTER UPDATE OF status ON claims
   FOR EACH ROW EXECUTE PROCEDURE public.handle_claim_status_change();
+
+-- ==========================================
+-- NOTIFICATIONS TABLE (Phase 10)
+-- ==========================================
+CREATE TABLE public.notifications (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  title text NOT NULL,
+  body text NOT NULL,
+  type text NOT NULL, -- e.g., 'claim_request', 'claim_approved', 'claim_completed'
+  reference_id text, -- ID of the related material or claim
+  is_read boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+-- Allow users to read their own notifications
+CREATE POLICY "Users can view their own notifications"
+ON public.notifications FOR SELECT
+TO authenticated
+USING (auth.uid() = user_id);
+
+-- Allow users to update (e.g. mark as read) their own notifications
+CREATE POLICY "Users can update their own notifications"
+ON public.notifications FOR UPDATE
+TO authenticated
+USING (auth.uid() = user_id);
+
+-- Allow authenticated users to insert notifications for ANY user (e.g., when requesting a claim)
+CREATE POLICY "Users can insert notifications for others"
+ON public.notifications FOR INSERT
+TO authenticated
+WITH CHECK (true);

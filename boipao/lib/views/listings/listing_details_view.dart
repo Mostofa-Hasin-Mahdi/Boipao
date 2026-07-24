@@ -29,17 +29,26 @@ class _ListingDetailsViewState extends State<ListingDetailsView> {
     }
   }
 
+  bool _isRequesting = false;
+
   void _handleClaimRequest() async {
+    if (_isRequesting) return;
+    setState(() => _isRequesting = true);
+
     final success = await context.read<ClaimController>().requestClaim(widget.material.id);
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Material claimed successfully!")),
-      );
-      Navigator.pop(context); // Go back after claiming
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.read<ClaimController>().errorMessage ?? "Failed to claim material.")),
-      );
+    
+    if (mounted) {
+      setState(() => _isRequesting = false);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Material claimed successfully!")),
+        );
+        Navigator.pop(context); // Go back after claiming
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.read<ClaimController>().errorMessage ?? "Failed to claim material.")),
+        );
+      }
     }
   }
 
@@ -165,14 +174,14 @@ class _ListingDetailsViewState extends State<ListingDetailsView> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: claimController.isLoading ? null : _handleClaimRequest,
+                  onPressed: (claimController.isLoading || _isRequesting) ? null : _handleClaimRequest,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryCard,
                     foregroundColor: AppColors.textMain,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: claimController.isLoading 
+                  child: (claimController.isLoading || _isRequesting)
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: AppColors.textMain, strokeWidth: 2))
                       : const Text("Request Material", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),

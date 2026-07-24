@@ -2,18 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/main_controller.dart';
 import '../../controllers/auth_controller.dart';
+import '../../controllers/notification_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/glass_nav_bar.dart';
 import '../home/home_view.dart';
 import '../profile/profile_view.dart';
 import '../listings/create_listing_view.dart';
+import '../chat/inbox_view.dart';
+import '../notifications/notifications_view.dart';
 import 'search_view.dart';
 
 /// The central scaffolding view for the application.
-/// 
-/// Coordinates tab switching via [MainController], holds the dynamic 
-/// floating navigation dock at the bottom, and safely positions the 
-/// primary Floating Action Button ('Add') above the dock.
 class MainView extends StatefulWidget {
   const MainView({super.key});
 
@@ -27,6 +26,8 @@ class _MainViewState extends State<MainView> {
   final List<Widget> _pages = [
     const HomeView(),
     const SearchView(),
+    const InboxView(),
+    const NotificationsView(),
     const ProfileView(),
   ];
 
@@ -35,6 +36,12 @@ class _MainViewState extends State<MainView> {
     super.initState();
     _controller.addListener(() {
       setState(() {});
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notifCtrl = context.read<NotificationController>();
+      notifCtrl.fetchNotifications();
+      notifCtrl.subscribeToNotifications();
     });
   }
 
@@ -48,7 +55,7 @@ class _MainViewState extends State<MainView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      extendBody: true, // Important so body goes behind bottom nav
+      extendBody: true,
       body: Stack(
         children: [
           IndexedStack(
@@ -63,8 +70,8 @@ class _MainViewState extends State<MainView> {
             ),
           ),
           Positioned(
-            bottom: 110, // Places it cleanly above the floating navigation bar
-            right: 24,
+            bottom: 105,
+            right: 20,
             child: FloatingActionButton(
               onPressed: () {
                 final auth = context.read<AuthController>();
@@ -90,7 +97,7 @@ class _MainViewState extends State<MainView> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Icon(Icons.add_rounded, color: Colors.white, size: 30),
+              child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
             ),
           )
         ],

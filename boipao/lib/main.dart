@@ -10,6 +10,7 @@ import 'controllers/verification_controller.dart';
 import 'controllers/claim_controller.dart';
 import 'controllers/review_controller.dart';
 import 'controllers/chat_controller.dart';
+import 'controllers/notification_controller.dart';
 import 'core/theme/app_colors.dart';
 import 'views/auth/auth_main_view.dart';
 import 'views/main/main_view.dart';
@@ -38,6 +39,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => ClaimController()),
         ChangeNotifierProvider(create: (_) => ReviewController()),
         ChangeNotifierProvider(create: (_) => ChatController()),
+        ChangeNotifierProvider(create: (_) => NotificationController()),
       ],
       child: const BoiPaoApp(),
     ),
