@@ -5,6 +5,7 @@ import '../../controllers/claim_controller.dart';
 import '../../models/material_model.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/neu_card.dart';
+import '../chat/chat_view.dart';
 
 class ListingDetailsView extends StatefulWidget {
   final MaterialModel material;
@@ -277,6 +278,60 @@ class _ListingDetailsViewState extends State<ListingDetailsView> {
             ],
           ),
           
+          if (status == 'pending' || status == 'approved') ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChatView(
+                        claimId: claim['id'],
+                        receiverId: claim['requester_id'],
+                        title: "Chat with ${requester['display_name'] ?? 'User'}",
+                        isCompleted: false,
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                label: const Text("Chat with Requester"),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.iconAccent,
+                  side: const BorderSide(color: AppColors.iconAccent),
+                ),
+              ),
+            ),
+          ] else if (status == 'completed') ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChatView(
+                        claimId: claim['id'],
+                        receiverId: claim['requester_id'],
+                        title: "Chat with ${requester['display_name'] ?? 'User'}",
+                        isCompleted: true,
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.lock_clock_outlined, size: 18),
+                label: const Text("Resource Claimed - Chat Disabled"),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.textSecondary,
+                  side: BorderSide(color: AppColors.textSecondary.withValues(alpha: 0.4)),
+                ),
+              ),
+            ),
+          ],
+
           if (status == 'pending') ...[
             const SizedBox(height: 16),
             Row(

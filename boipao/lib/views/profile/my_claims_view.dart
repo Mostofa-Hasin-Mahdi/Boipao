@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/claim_controller.dart';
+import '../../controllers/review_controller.dart';
 import '../../core/theme/app_colors.dart';
+import '../../widgets/add_review_dialog.dart';
 import '../../widgets/neu_card.dart';
+import '../chat/chat_view.dart';
 
 class MyClaimsView extends StatefulWidget {
   const MyClaimsView({super.key});
@@ -108,6 +111,60 @@ class _MyClaimsViewState extends State<MyClaimsView> {
                             ],
                           ),
                           
+                          if (status == 'pending' || status == 'approved') ...[
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ChatView(
+                                        claimId: claim['id'],
+                                        receiverId: material != null ? material['donor_id'] : '',
+                                        title: material != null ? "Chat: ${material['title']}" : "Chat",
+                                        isCompleted: false,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                                label: const Text("Chat with Donor"),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.iconAccent,
+                                  side: const BorderSide(color: AppColors.iconAccent),
+                                ),
+                              ),
+                            ),
+                          ] else if (status == 'completed') ...[
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ChatView(
+                                        claimId: claim['id'],
+                                        receiverId: material != null ? material['donor_id'] : '',
+                                        title: material != null ? "Chat: ${material['title']}" : "Chat",
+                                        isCompleted: true,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.lock_clock_outlined, size: 18),
+                                label: const Text("Resource Claimed - Chat Disabled"),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.textSecondary,
+                                  side: BorderSide(color: AppColors.textSecondary.withValues(alpha: 0.4)),
+                                ),
+                              ),
+                            ),
+                          ],
+
                           if (status == 'approved') ...[
                             const SizedBox(height: 16),
                             Container(
@@ -132,6 +189,58 @@ class _MyClaimsViewState extends State<MyClaimsView> {
                                 ),
                                 child: const Text("Mark as Completed"),
                               ),
+                            ),
+                          ],
+
+                          if (status == 'completed' && material != null) ...[
+                            const SizedBox(height: 12),
+                            FutureBuilder<bool>(
+                              future: context.read<ReviewController>().hasClaimBeenReviewed(claim['id']),
+                              builder: (context, snapshot) {
+                                final isReviewed = snapshot.data ?? false;
+                                if (isReviewed) {
+                                  return const Row(
+                                    children: [
+                                      Icon(Icons.check_circle, color: AppColors.iconAccent, size: 16),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        "Reviewed",
+                                        style: TextStyle(
+                                          color: AppColors.iconAccent,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                                return SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () async {
+                                      final res = await showDialog<bool>(
+                                        context: context,
+                                        builder: (_) => AddReviewDialog(
+                                          claimId: claim['id'],
+                                          materialId: material['id'],
+                                          revieweeId: material['donor_id'],
+                                          materialTitle: material['title'],
+                                        ),
+                                      );
+                                      if (res == true) {
+                                        setState(() {});
+                                      }
+                                    },
+                                    icon: const Icon(Icons.rate_review_outlined, size: 18),
+                                    label: const Text("Leave a Review"),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppColors.textMain,
+                                      side: const BorderSide(color: AppColors.primaryCard),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ],
