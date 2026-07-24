@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/claim_controller.dart';
 import '../../models/material_model.dart';
@@ -17,6 +18,10 @@ class ListingDetailsView extends StatefulWidget {
 }
 
 class _ListingDetailsViewState extends State<ListingDetailsView> {
+  Map<String, dynamic>? _donorProfile;
+  double _donorRating = 0.0;
+  bool _isLoadingDonor = true;
+
   @override
   void initState() {
     super.initState();
@@ -26,6 +31,44 @@ class _ListingDetailsViewState extends State<ListingDetailsView> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         context.read<ClaimController>().fetchIncomingClaims(widget.material.id);
       });
+    }
+    _fetchDonorProfile();
+  }
+
+  Future<void> _fetchDonorProfile() async {
+    try {
+      final supabase = Supabase.instance.client;
+      final profileRes = await supabase
+          .from('profiles')
+          .select('display_name, points, donations_count, is_verified')
+          .eq('id', widget.material.donorId)
+          .maybeSingle();
+
+      final reviewRes = await supabase
+          .from('reviews')
+          .select('rating')
+          .eq('reviewee_id', widget.material.donorId);
+
+      double rating = 0.0;
+      if (reviewRes.isNotEmpty) {
+        double total = 0;
+        for (var r in reviewRes) {
+          total += (r['rating'] as num).toDouble();
+        }
+        rating = total / reviewRes.length;
+      }
+
+      if (mounted) {
+        setState(() {
+          _donorProfile = profileRes;
+          _donorRating = rating;
+          _isLoadingDonor = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingDonor = false);
+      }
     }
   }
 
@@ -167,6 +210,80 @@ class _ListingDetailsViewState extends State<ListingDetailsView> {
             const SizedBox(height: 32),
           ],
           
+          // Donor Profile Snapshot
+          const Text(
+            "Donor",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textMain),
+          ),
+          const SizedBox(height: 8),
+          _isLoadingDonor 
+              ? const Center(child: CircularProgressIndicator(color: AppColors.iconAccent))
+              : _donorProfile != null 
+                  ? NeuCard(
+                      padding: 16,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const CircleAvatar(
+                                backgroundColor: AppColors.secondary,
+                                child: Icon(Icons.person_rounded, color: AppColors.textMain),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _donorProfile!['display_name'] ?? 'Unknown',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textMain),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.star_rounded, size: 16, color: Colors.orange.shade400),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          _donorRating > 0 ? _donorRating.toStringAsFixed(1) : "No ratings",
+                                          style: const TextStyle(fontSize: 13, color: AppColors.textMain, fontWeight: FontWeight.bold),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        const Icon(Icons.monetization_on_rounded, size: 16, color: AppColors.primary),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          "${_donorProfile!['points'] ?? 0} pts",
+                                          style: const TextStyle(fontSize: 13, color: AppColors.textMain, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              if (_donorProfile!['is_verified'] == true)
+                                _buildBadge("Verified Student", Icons.verified_rounded, Colors.blue),
+                              if ((_donorProfile!['donations_count'] ?? 0) >= 1)
+                                _buildBadge("First Donation", Icons.volunteer_activism_rounded, Colors.pink),
+                              if ((_donorProfile!['donations_count'] ?? 0) >= 5)
+                                _buildBadge("Generous Donor", Icons.diamond_rounded, Colors.purple),
+                              if ((_donorProfile!['points'] ?? 0) >= 100)
+                                _buildBadge("Elite Donor", Icons.military_tech_rounded, Colors.amber.shade800),
+                            ],
+                          )
+                        ],
+                      ),
+                    )
+                  : const Text("Donor profile unavailable", style: TextStyle(color: AppColors.textSecondary)),
+                  
+          const SizedBox(height: 32),
+          
           // ACTIONS
           if (!isDonor) ...[
             // Recipient View
@@ -244,6 +361,25 @@ class _ListingDetailsViewState extends State<ListingDetailsView> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildBadge(String text, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(text, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
+        ],
+      ),
     );
   }
 

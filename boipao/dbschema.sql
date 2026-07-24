@@ -252,6 +252,8 @@ CREATE TRIGGER on_verification_approved
 -- Trigger to update material status when a claim is approved or completed
 CREATE OR REPLACE FUNCTION public.handle_claim_status_change()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_donor_id UUID;
 BEGIN
   IF NEW.status = 'approved' AND OLD.status != 'approved' THEN
     -- Set the material to pending (transfer in progress)
@@ -261,6 +263,22 @@ BEGIN
   ELSIF NEW.status = 'completed' AND OLD.status != 'completed' THEN
     -- Set the material to claimed (handover complete)
     UPDATE public.materials SET status = 'claimed' WHERE id = NEW.material_id;
+    
+    -- Get the donor_id from the material
+    SELECT donor_id INTO v_donor_id FROM public.materials WHERE id = NEW.material_id;
+    
+    -- Increment Donor points (10) and donations_count (1)
+    IF v_donor_id IS NOT NULL THEN
+      UPDATE public.profiles
+      SET points = points + 10,
+          donations_count = donations_count + 1
+      WHERE id = v_donor_id;
+    END IF;
+    
+    -- Increment Recipient claims_count (1)
+    UPDATE public.profiles
+    SET claims_count = claims_count + 1
+    WHERE id = NEW.requester_id;
   END IF;
   RETURN NEW;
 END;

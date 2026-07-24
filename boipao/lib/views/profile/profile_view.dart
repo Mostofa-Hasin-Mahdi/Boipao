@@ -10,9 +10,26 @@ import 'favourites_view.dart';
 import 'verification_view.dart';
 import '../admin/admin_dashboard_view.dart';
 import 'my_claims_view.dart';
+import '../../controllers/review_controller.dart';
 
-class ProfileView extends StatelessWidget {
+class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
+
+  @override
+  State<ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends State<ProfileView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.read<AuthController>().currentUser;
+      if (user != null) {
+        context.read<ReviewController>().fetchUserReviews(user.id);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -317,8 +334,10 @@ class ProfileView extends StatelessWidget {
             ),
 
             const SizedBox(height: 32),
+            
+            // Badges Section
             const Text(
-              "Recent Activity",
+              "Badges",
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -326,9 +345,104 @@ class ProfileView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            _buildActivityCard("Donated HSC Physics 2nd Paper", "2 days ago", Icons.check_circle_outline),
+            NeuCard(
+              padding: 16.0,
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  if (user.isVerified)
+                    _buildBadge("Verified Student", Icons.verified_rounded, Colors.blue),
+                  if (user.donationsCount >= 1)
+                    _buildBadge("First Donation", Icons.volunteer_activism_rounded, Colors.pink),
+                  if (user.donationsCount >= 5)
+                    _buildBadge("Generous Donor", Icons.diamond_rounded, Colors.purple),
+                  if (user.points >= 100)
+                    _buildBadge("Elite Donor", Icons.military_tech_rounded, Colors.amber.shade800),
+                  if (!user.isVerified && user.donationsCount == 0 && user.points == 0)
+                    const Text("Complete activities to earn badges!", style: TextStyle(color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 32),
+            
+            // Reviews Section
+            const Text(
+              "Recent Reviews",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textMain,
+              ),
+            ),
             const SizedBox(height: 16),
-            _buildActivityCard("Claimed Oxford Dictionary", "1 week ago", Icons.hourglass_empty),
+            Consumer<ReviewController>(
+              builder: (context, reviewController, _) {
+                if (reviewController.isLoading) {
+                  return const Center(child: CircularProgressIndicator(color: AppColors.iconAccent));
+                }
+                
+                if (reviewController.userReviews.isEmpty) {
+                  return const NeuCard(
+                    padding: 16.0,
+                    child: Center(
+                      child: Text("No reviews received yet.", style: TextStyle(color: AppColors.textSecondary)),
+                    ),
+                  );
+                }
+                
+                return Column(
+                  children: reviewController.userReviews.map((review) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: NeuCard(
+                        padding: 16.0,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Row(
+                                  children: List.generate(5, (index) {
+                                    return Icon(
+                                      Icons.star_rounded,
+                                      size: 16,
+                                      color: index < review.rating ? Colors.orange.shade400 : Colors.grey.shade300,
+                                    );
+                                  }),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  _formatDate(review.createdAt),
+                                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            if (review.comment != null && review.comment!.isNotEmpty)
+                              Text(
+                                review.comment!,
+                                style: const TextStyle(fontSize: 14, color: AppColors.textMain),
+                              )
+                            else
+                              const Text(
+                                "No comment provided.",
+                                style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: AppColors.textSecondary),
+                              ),
+                            const SizedBox(height: 8),
+                            Text(
+                              "- ${review.reviewerName ?? 'Anonymous'}",
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
           ] else if (user.role == UserRole.admin) ...[
             GestureDetector(
               onTap: () {
@@ -365,38 +479,37 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  Widget _buildActivityCard(String title, String subtitle, IconData icon) {
-    return NeuCard(
-      padding: 16.0,
+  Widget _buildBadge(String text, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: AppColors.iconAccent, size: 28),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textMain,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textMain.withOpacity(0.6),
-                  ),
-                ),
-              ],
-            ),
-          )
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(text, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color)),
         ],
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+    if (difference.inDays > 0) {
+      return "${difference.inDays}d ago";
+    } else if (difference.inHours > 0) {
+      return "${difference.inHours}h ago";
+    } else if (difference.inMinutes > 0) {
+      return "${difference.inMinutes}m ago";
+    } else {
+      return "Just now";
+    }
   }
 
 }
